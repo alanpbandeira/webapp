@@ -1,80 +1,79 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './Login.css'
 import Main from '../template/Main'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
+import { useAuth } from "../../context/Auth";
 
 const headerProps = {
     title: 'Maccommerce',
-    //subtitle: 'Informe suas credenciais'
 }
 
-const baseUrl = 'http://localhost:8000/authenticate'
-//const baseUrl = 'http://localhost:4001/users'
+function Login() {
+    const [isLoggedIn, setLoggedIn] = useState(false);
+    const [username, setUserName] = useState("");
+    const [password, setPassword] = useState("");
+    const { setAuthTokens } = useAuth();
+    let user;
 
-const initialState = {
-    user: { username: '', password: '' },
-}
 
+    function postLogin(e) {
+         e.preventDefault()
 
-export default class Login extends React.Component {
+        user = {username, password}
 
-    state = { ...initialState }
-
-    clear() {
-        this.setState({ user: initialState.user })
+        console.log("Iniciando requisição:")
+        console.log(user)
+        axios.post(`http://localhost:8000/authenticate`, user)
+        .then(resp => {
+            console.log(resp.data)
+            if ((resp.status_code = 200)) {
+                setAuthTokens(resp.data);
+                setLoggedIn(true);
+                console.log("Login realizado com sucesso!!!")
+                alert("Login realizado com sucesso!!!")
+            } else {
+                console.log("Opa algo deu errado no login!!!")
+                alert("Opa algo deu errado no login!!!" + resp.data)
+            }
+        }).catch((error) => {
+            console.log(error)
+            alert("Credenciais inválidas")
+        })
     }
 
-    save() {
-        const user = this.state.user
-        const method = user.id ? 'put' : 'post'
-        const url = user.id ? `${baseUrl}/${user.id}` : baseUrl
-        axios[method](url, user)
-            .then(resp => {
-                console.log(user)
-                console.log(resp.data) 
-                this.setState({ user: initialState.user })
-            })
+    if (isLoggedIn) {
+        return <Redirect to="/" />;
     }
 
-    updateField(event) {
-        const user = { ...this.state.user }
-        user[event.target.name] = event.target.value
-        this.setState({ user })
-    }
+    return (
+        <Main  {...headerProps}>
+            <div className="login-page">
+                <div className="form">
+                    <form className="login-form"><h1>Login</h1><p />
+                        Nome de usuario:
+                        <input type="text" className="form-control"
+                            type="username"
+                            value={username}
+                            onChange={e => { setUserName(e.target.value)}}
+                            placeholder="username" />
+                        Senha:
+                        <input type="password" className="form-control"
+                            type="password"
+                            value={password}
+                            onChange={e => { setPassword(e.target.value)}}
+                            placeholder="1234" />
 
-    onSubmit = () => {
-        this.props.history.push("/");
-    };
-
-    render() {
-        return (
-            <Main  {...headerProps}>
-                <div className="login-page">
-                    <div className="form">
-                        <form className="login-form"><h1>Login</h1><p />
-                            Nome de usuario:
-                            <input type="text" className="form-control"
-                                name="username"
-                                value={this.state.user.username}
-                                onChange={e => this.updateField(e)}
-                                placeholder="username" />
-                            Senha:
-                            <input type="password" className="form-control"
-                                name="password"
-                                value={this.state.user.password}
-                                onChange={e => this.updateField(e)}
-                                placeholder="1234" />
-                            
-                                <button className="btn btn-primary"
-                                    onClick={e => this.save(e)}>
-                                    Login
-                                </button>
-                            <p className="message">Não registado? <Link to="/register">Crie uma conta</Link></p>
-                        </form>
-                    </div>
+                        <button className="btn btn-primary"
+                            onClick={postLogin}>
+                            Login
+                            </button>
+                        <p className="message">Não registado? <Link to="/register">Crie uma conta</Link></p>
+                    </form>
                 </div>
-            </Main>
-        )
-    }
+            </div>
+        </Main>
+    )
 }
+
+export default Login;

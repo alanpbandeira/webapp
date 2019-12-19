@@ -14,8 +14,8 @@ export default props =>
             <Link to="/register">
                 <i className="fa fa-address-card-o"></i> Registre-se
             </Link>
-            <Link to="/users">
-                <i className="fa fa-address-card-o"></i> Cadastrar Cliente
+            <Link to="/cart">
+                <i className="fa fa-shopping-cart"></i> Carrinho
             </Link>
         </nav>
     </aside>
